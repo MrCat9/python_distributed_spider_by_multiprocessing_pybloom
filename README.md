@@ -15,14 +15,14 @@ python 3.6.4
 
 ## 安装 pybloom
 
-"""
+```
 下载 pybloom  https://github.com/jaybaird/python-bloomfilter
 下载 bitarray  https://www.lfd.uci.edu/~gohlke/pythonlibs/#bitarray
 
 安装：
 1.将pybloom拷贝到工程目录下
 2.pip install [存放路径\bitarray-0.8.3-cp36-cp36m-win_amd64.whl]
-"""
+```
 
 ## 运行
 
