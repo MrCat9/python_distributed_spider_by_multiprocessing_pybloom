@@ -22,7 +22,7 @@ print('Connect to server %s...' % settings.manager_ip)
 # 端口和验证码注意保持与 url_manager.py 设置的完全一致:
 m = QueueManager(address=(settings.manager_ip, settings.manager_port), authkey=settings.manager_authkey)
 
-for i in range(10):
+while True:
     try:
         # 从网络连接:
         m.connect()
@@ -37,8 +37,8 @@ all_url = m.get_all_url()
 # 接收cmd命令传递过来的参数  from_page 和 end_page
 from_page = sys.argv[1]
 end_page = sys.argv[2]
-# from_page = 1
-# end_page = 11
+# from_page = 51
+# end_page = 60
 
 # 把 url 放到 url_manager.py 下的 all_url 中
 for page in range(int(from_page), int(end_page)+1):

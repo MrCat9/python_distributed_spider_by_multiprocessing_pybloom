@@ -7,7 +7,6 @@ from pybloom import ScalableBloomFilter
 import time
 
 import settings
-import run_spider  # 动态调整 url_get.py 数量  # 有大量未爬取url时，多开 url_get.py
 
 
 # 待爬取url
@@ -19,6 +18,9 @@ url_set_result = queue.Queue()
 # url 爬取结果  url_get.py 爬取成功与否的信息存到该队列中  爬取成功或爬取失败+失败原因+是否重新添加回new_url（是否从新爬取）
 url_get_result = queue.Queue()
 
+# url_get.py 的进程号  用于控制 url_get.py 的数量  待爬取的url多，就多开 url_get.py
+url_get_py_id = queue.Queue()
+
 
 def return_new_url():
     global new_url
@@ -28,6 +30,21 @@ def return_new_url():
 def return_all_url():
     global all_url
     return all_url
+
+
+def return_url_set_result():
+    global url_set_result
+    return url_set_result
+
+
+def return_url_get_result():
+    global url_get_result
+    return url_get_result
+
+
+def return_url_get_py_id():
+    global url_get_py_id
+    return url_get_py_id
 
 
 # 从BaseManager继承的QueueManager:
@@ -41,19 +58,23 @@ if __name__ == '__main__':
     num_all_url = 0  # 总共处理的url
     num_url_deduplicated = 0  # 去重后的url
 
-    # 把两个Queue都注册到网络上, callable参数关联了Queue对象:
+    # 把Queue注册到网络上, callable参数关联了Queue对象:
     QueueManager.register('get_new_url', callable=return_new_url)
     QueueManager.register('get_all_url', callable=return_all_url)
+    QueueManager.register('get_url_get_py_id', callable=return_url_get_py_id)
+
     # 绑定端口5000, 设置验证码:
     manager = QueueManager(address=(settings.manager_ip, settings.manager_port), authkey=settings.manager_authkey)  # 本机在局域网中的ip地址
+
     # 启动Queue:
     manager.start()
     print('url_manager start')
+
     # 获得通过网络访问的Queue对象:
     all_url = manager.get_all_url()
     new_url = manager.get_new_url()
+    url_get_py_id = manager.get_url_get_py_id()
 
-    # if not all_url.empty():
     while True:
         try:
             url = all_url.get(timeout=1)
@@ -68,8 +89,7 @@ if __name__ == '__main__':
             print('总共处理的url:', num_all_url)
             print('去重后的url:', num_url_deduplicated)
             print('已添加到爬取队列的url:', len(sbf))
-            print(new_url.qsize())
-
+            print('正在运行的url_get.py:', url_get_py_id.qsize())
         except:
             print('================')
             print('等待爬取的url:', new_url.qsize())
@@ -77,6 +97,7 @@ if __name__ == '__main__':
             print('总共处理的url:', num_all_url)
             print('去重后的url:', num_url_deduplicated)
             print('已添加到爬取队列的url:', len(sbf))
+            print('正在运行的url_get.py:', url_get_py_id.qsize())
             time.sleep(2)
 
     # # 关闭:

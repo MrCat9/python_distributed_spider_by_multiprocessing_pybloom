@@ -2,7 +2,11 @@
 # 启动分布式爬虫
 
 import os
+import psutil
 import multiprocessing
+import time
+
+import settings
 
 
 def gen_manager_command():
@@ -23,7 +27,12 @@ def run_cmd(command):
 
 def multi_process_task(command):
     try:
-        cmd_result = run_cmd(command)
+        while True:
+            if psutil.virtual_memory().percent < settings.MAX_MEMORY_USE:
+                run_cmd(command)
+                break
+            else:
+                time.sleep(1)
     except Exception as e:
         print(str(e))
         print('================')
@@ -39,12 +48,14 @@ if __name__ == '__main__':
 
     # url_set.py
     begin_page = 1
-    page_step = 10
-    total_page = 111
+    page_step = 20
+    total_page = 500  # 12
     # url_get.py
-    url_get_num = 5
+    # url_get_num = 5
 
     command_list.append(gen_manager_command())
+
+    command_list.append((gen_get_command()))
 
     from_page = begin_page - 1
     while from_page < total_page:
@@ -55,8 +66,8 @@ if __name__ == '__main__':
         command_list.append(gen_set_command(from_page, end_page))
         from_page = end_page
 
-    for i in range(url_get_num):
-        command_list.append((gen_get_command()))
+    # for i in range(url_get_num):
+    #     command_list.append((gen_get_command()))
 
     i = 1
     pool = multiprocessing.Pool(processes=40)  # 4个进程
@@ -67,3 +78,5 @@ if __name__ == '__main__':
         i += 1
     pool.close()  # 调用join()之前必须先调用close()，调用close()之后就不能继续添加新的Process了
     pool.join()
+
+    print('run_spider.py')
