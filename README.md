@@ -26,3 +26,13 @@ python 3.6.4
 
 ## 运行
 
+```
+运行 run_spider.py
+```
+
+```
+1. 运行 url_manager.py
+2. 运行 url_set.py [起始页码] [结束页码]
+3. 运行 url_get.py
+```
+
